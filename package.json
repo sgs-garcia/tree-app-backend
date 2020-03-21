@@ -1,0 +1,47 @@
+{
+  "name": "tree-app",
+  "version": "1.0.0",
+  "description": "Family tree app in hapi",
+  "main": "src/app.ts",
+  "scripts": {
+    "start": "ts-node src/app.ts",
+    "test": "ava",
+    "build": "tsc",
+    "lint": "eslint --max-warnings 0 src/**/*.ts",
+    "format": "prettier --write src/**/*.ts"
+  },
+  "author": "Sergio García <sgs.garcia93@gmail.com>",
+  "license": "MIT",
+  "repository": "github:sgs-garcia/tree-app-backend",
+  "dependencies": {
+    "@hapi/hapi": "^19.1.1"
+  },
+  "devDependencies": {
+    "@ava/typescript": "^1.1.1",
+    "@types/hapi__hapi": "^19.0.2",
+    "@types/node": "^13.9.2",
+    "@typescript-eslint/eslint-plugin": "^2.24.0",
+    "@typescript-eslint/parser": "^2.24.0",
+    "ava": "^3.5.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.0",
+    "husky": "^4.2.3",
+    "prettier": "^1.19.1",
+    "pretty-quick": "^2.0.1",
+    "ts-node": "^8.7.0",
+    "typescript": "^3.8.3"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint && pretty-quick --staged"
+    }
+  }
+}
