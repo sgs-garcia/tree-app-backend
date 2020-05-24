@@ -1,0 +1,41 @@
+name: Continuous Integration
+
+on: push
+
+jobs:
+  Code Quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - run: npm ci
+
+      - name: Linter
+        run: npm run lint
+
+      - name: Test Coverage
+        run: npm run coverage
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-coverage
+          path: coverage/lcov-report
+
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
