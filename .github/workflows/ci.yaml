@@ -3,8 +3,8 @@ name: CI
 on: push
 
 jobs:
-  code-quality:
-    name: 'Code Quality'
+  test-and-build:
+    name: Test and Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -13,9 +13,14 @@ jobs:
         with:
           node-version: 12.x
 
+      - uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
       - run: npm ci
 
-      - name: Linter
+      - name: Lint
         run: npm run lint
 
       - name: Test Coverage
@@ -27,17 +32,6 @@ jobs:
           name: test-coverage
           path: coverage/lcov-report
 
-  build:
-    name: 'Build'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
-
-      - run: npm ci
-
       - name: Build
+        if: github.ref != 'refs/heads/master'
         run: npm run build
