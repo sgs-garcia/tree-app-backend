@@ -4,7 +4,7 @@ on: push
 
 jobs:
   code-quality:
-    name: 'Code Quality'
+    name: Code Quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -14,6 +14,11 @@ jobs:
           node-version: 12.x
 
       - run: npm ci
+
+      - name: Test Refs
+        run: echo "$SOME_VAR"
+        env:
+          SOME_VAR: ${{ github.ref }}
 
       - name: Linter
         run: npm run lint
@@ -28,7 +33,7 @@ jobs:
           path: coverage/lcov-report
 
   build:
-    name: 'Build'
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
