@@ -32,5 +32,6 @@ jobs:
           gcloud run deploy $GCP_SERVICE --quiet
           --region $GCP_REGION --platform managed
           --image gcr.io/$GCP_PROJECT/$GCP_SERVICE:$GITHUB_SHA
+          --allow-unauthenticated
         env:
           GCP_REGION: us-east1
