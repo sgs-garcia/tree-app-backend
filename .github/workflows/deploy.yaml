@@ -1,0 +1,34 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: GCP
+    runs-on: ubuntu-latest
+    env:
+      GCP_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_SERVICE: node-test
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Docker Image
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+        run: >
+          gcloud builds submit
+          --tag gcr.io/$GCP_PROJECT/$GCP_SERVICE:$GITHUB_SHA
+
+      - name: Deploy to Cloud Run
+        run: >
+          gcloud run deploy $GCP_SERVICE --quiet
+          --region us-east1 --platform managed
+          --image gcr.io/$GCP_PROJECT/$GCP_SERVICE:$GITHUB_SHA
+        env:
+          GCP_REGION: us-east1
