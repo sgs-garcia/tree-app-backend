@@ -13,18 +13,12 @@ jobs:
         with:
           node-version: 12.x
 
-      - name: Cache Node Modules
-        uses: actions/cache@v1
+      - uses: actions/cache@v1
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
 
       - run: npm ci
-
-      - name: Test Refs
-        run: echo "$SOME_VAR"
-        env:
-          SOME_VAR: ${{ github.ref }}
 
       - name: Lint
         run: npm run lint
