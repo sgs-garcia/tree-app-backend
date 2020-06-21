@@ -15,9 +15,7 @@ resource "google_cloud_run_service" "treeapp" {
 data "google_iam_policy" "noauth" {
   binding {
     role = "roles/run.invoker"
-    members = [
-      "allUsers",
-    ]
+    members = ["allUsers"]
   }
 }
 
