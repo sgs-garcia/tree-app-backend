@@ -1,0 +1,100 @@
+name: Terraform
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'terraform/*'
+  deployment:
+    branches:
+      - master
+
+jobs:
+  start-deployment:
+    name: Start deployment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'deployment'
+    steps:
+      - uses: actions/github-script@v2
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            console.log(context.payload.id)
+            github.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.id,
+              state: 'in_progress',
+            })
+  validate:
+    name: Validate Plan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_TOKEN }}
+
+      - name: Setup terraform variables
+        run: echo "revision = \"$GITHUB_SHA\"" > terraform.auto.tfvars
+
+      - run: terraform fmt
+        continue-on-error: true
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color
+      
+      # - name: Terraform Apply
+      #   if: github.event_name == 'deployment'
+      #   run: terraform apply -auto-approve
+
+  success:
+    name: Update deployment status
+    runs-on: ubuntu-latest
+    if: github.event_name == 'deployment'
+    needs:
+      validate:
+        result: success
+    steps:
+      - uses: actions/github-script@v2
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            console.log(context.payload.id)
+            github.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.id,
+              state: 'success',
+            })
+
+  failure:
+    name: Update deployment status
+    runs-on: ubuntu-latest
+    if: github.event_name == 'deployment'
+    needs:
+      validate:
+        result: failure
+    steps:
+      - uses: actions/github-script@v2
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            console.log(context.payload.id)
+            github.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.id,
+              state: 'failure',
+            })
