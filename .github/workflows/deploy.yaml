@@ -9,9 +9,6 @@ jobs:
   deploy:
     name: GCP
     runs-on: ubuntu-latest
-    env:
-      GCP_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
-      GCP_SERVICE: node-test
     steps:
       - uses: actions/checkout@v2
 
@@ -26,14 +23,18 @@ jobs:
           gcloud builds submit
           --quiet
           --tag gcr.io/$GCP_PROJECT/$GCP_SERVICE:$GITHUB_SHA
+        env:
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_SERVICE: ${{ secrets.GCP_SERVICE }}
 
       - name: Deploy to Cloud Run
         uses: actions/github-script@v2
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          github-token: ${{secrets.GH_PA_TOKEN}}
           script: |
             github.repos.createDeployment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: context.ref,
+              required_contexts: [],
             });

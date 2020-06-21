@@ -1,0 +1,9 @@
+#Node modules
+node_modules/**
+
+# Coverage reports
+.nyc_output/**
+coverage/**
+
+# Build output folder
+dist/**

@@ -20,11 +20,13 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            console.log(context.payload.id)
             github.repos.createDeploymentStatus({
+              headers: {
+                accept: 'application/vnd.github.flash-preview+json',
+              },
               owner: context.repo.owner,
               repo: context.repo.repo,
-              deployment_id: context.payload.id,
+              deployment_id: context.payload.deployment.id,
               state: 'in_progress',
             })
   validate:
@@ -54,47 +56,29 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: terraform plan -no-color
-      
-      # - name: Terraform Apply
-      #   if: github.event_name == 'deployment'
-      #   run: terraform apply -auto-approve
 
-  success:
+      - name: Terraform Apply
+        if: github.event_name == 'deployment'
+        run: terraform apply -auto-approve
+
+  update-deployment:
     name: Update deployment status
     runs-on: ubuntu-latest
-    if: github.event_name == 'deployment'
-    needs:
-      validate:
-        result: success
+    if: always() && github.event_name == 'deployment'
+    needs: validate
     steps:
       - uses: actions/github-script@v2
+        env:
+          STATUS: ${{ needs.validate.result }}
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            console.log(context.payload.id)
+            const state = process.env.STATUS === 'success'
+              ? 'success'
+              : 'failure';
             github.repos.createDeploymentStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              deployment_id: context.payload.id,
-              state: 'success',
-            })
-
-  failure:
-    name: Update deployment status
-    runs-on: ubuntu-latest
-    if: github.event_name == 'deployment'
-    needs:
-      validate:
-        result: failure
-    steps:
-      - uses: actions/github-script@v2
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            console.log(context.payload.id)
-            github.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: context.payload.id,
-              state: 'failure',
+              deployment_id: context.payload.deployment.id,
+              state,
             })
