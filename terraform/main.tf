@@ -1,4 +1,5 @@
 provider "google" {
+  version = "~> 3.26"
   project = var.project
   region  = var.region
 }
