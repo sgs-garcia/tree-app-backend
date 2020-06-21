@@ -1,6 +1,9 @@
 name: Terraform
 
-on: push
+on:
+  push:
+    paths:
+      - 'terraform/*'
 
 jobs:
   plan:
