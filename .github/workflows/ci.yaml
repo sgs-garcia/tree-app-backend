@@ -1,10 +1,6 @@
 name: CI
 
-on:
-  push:
-    paths:
-      - '!terraform/*'
-
+on: push
 
 jobs:
   code-quality:
