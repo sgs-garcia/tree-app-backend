@@ -3,6 +3,7 @@ name: Terraform
 on:
   push:
     paths:
+      - '.github/*'
       - 'terraform/*'
 
 jobs:
