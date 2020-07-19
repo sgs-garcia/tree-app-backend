@@ -11,3 +11,6 @@ dist
 # Terraform
 .terraform
 *.tfvars
+
+# Raw Data
+*.csv
