@@ -1,3 +1,7 @@
+variable "project_name" { 
+  default = "family-tree"
+}
+
 variable "project" { }
 
 variable "region" {
