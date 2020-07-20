@@ -13,17 +13,18 @@ export interface IPersonMap {
 export const UUID_NAMESPACE = '2dcddfa0-9e59-45f6-bddc-d3031d7e121d';
 
 export function processPerson(rawPerson: CsvPerson): Person {
+  const names = splitName(rawPerson.name);
+  const idString = JSON.stringify({
+    ...names,
+    birth: rawPerson.birth
+      ? new Date(rawPerson.birth.setUTCHours(0, 0, 0, 0))
+      : undefined,
+  });
+  console.log(`Processing ${idString}`);
+
   const person: Person = {
-    id: uuid(
-      JSON.stringify({
-        name: rawPerson.name,
-        birth: rawPerson.birth,
-        death: rawPerson,
-      }),
-      UUID_NAMESPACE
-    ),
-    ...splitName(rawPerson.name),
-    birthDate: new Date(rawPerson.birth.setUTCHours(0, 0, 0, 0)),
+    id: uuid(idString, UUID_NAMESPACE),
+    ...names,
     isDeceased: !!rawPerson.death,
     gender: mapGender(rawPerson.gender),
     families: {},
@@ -33,14 +34,20 @@ export function processPerson(rawPerson: CsvPerson): Person {
     siblings: {},
   };
 
-  if (typeof rawPerson.death !== 'string') {
-    person.deceasedDate = new Date(rawPerson.death.setUTCHours(0, 0, 0, 0));
+  if (rawPerson.birth) {
+    person.birthDate = new Date(
+      rawPerson.birth.setUTCHours(0, 0, 0, 0)
+    ).toISOString();
   }
-
-  const now = new Date();
+  if (typeof rawPerson.death !== 'string') {
+    person.deceasedDate = new Date(
+      rawPerson.death.setUTCHours(0, 0, 0, 0)
+    ).toISOString();
+  }
+  const now = Date.now();
   if (
-    person.birthDate > now ||
-    (person.deceasedDate && person.deceasedDate > now)
+    (person.birthDate && Date.parse(person.birthDate) > now) ||
+    (person.deceasedDate && Date.parse(person.deceasedDate) > now)
   ) {
     console.error('Incorrect dates for element!', person);
     process.exit(1);
@@ -60,6 +67,7 @@ export function setParentsAndPartners(rawPeople: Map<number, IPersonMap>) {
       .filter((p: unknown): p is IPersonMap => p !== undefined)
       .reduce((obj, { person: { id } }) => ({ ...obj, [id]: true }), {});
 
+    if (!person.parents) person.parents = {};
     if (mother) person.parents[mother.id] = true;
     if (father) person.parents[father.id] = true;
     person.partners = partnerIds;
@@ -70,6 +78,8 @@ export function addChildren(people: Map<string, Person>) {
   people.forEach((person, id) => {
     Object.entries(person.parents).forEach(([parentId, value]) => {
       const parent = people.get(parentId);
+
+      if (!person.children) person.children = {};
       if (parent) parent.children[id] = value;
     });
   });
@@ -77,7 +87,7 @@ export function addChildren(people: Map<string, Person>) {
 
 export function addSiblings(people: Map<string, Person>) {
   const duplicatedChildren = [...people.values()]
-    .map(({ children }) => children)
+    .map(({ children }) => children || {})
     .filter(children => !!Object.entries(children).length);
   const siblingsGroups = uniqWith(duplicatedChildren, isEqual);
 

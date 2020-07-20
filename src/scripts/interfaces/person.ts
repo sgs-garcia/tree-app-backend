@@ -6,13 +6,13 @@ export interface Person {
   shortName?: string;
   givenNames: string[];
   surnames: string[];
-  birthDate: Date;
+  birthDate?: string;
   isDeceased?: boolean;
-  deceasedDate?: Date;
+  deceasedDate?: string;
   gender: Gender;
   families: Relationships;
-  parents: Relationships;
-  partners: Relationships;
-  children: Relationships;
-  siblings: Relationships;
+  parents?: Relationships;
+  partners?: Relationships;
+  children?: Relationships;
+  siblings?: Relationships;
 }
