@@ -13,7 +13,7 @@
   },
   "author": "Sergio García <sgs.garcia93@gmail.com>",
   "license": "MIT",
-  "repository": "github:sgs-garcia/tree-app-backend",
+  "repository": "github:serchtul/tree-app-backend",
   "dependencies": {
     "@hapi/hapi": "19.1.1"
   },
