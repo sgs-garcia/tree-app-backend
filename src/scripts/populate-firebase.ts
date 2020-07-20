@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { FirebaseDb } from './helpers/firebaseDb';
 import { mergeTrees } from './helpers/mergeTrees';
 import { FirebaseTreeFactory } from './helpers/firebaseTreeFactory';
+import { getUserConfirmation } from './helpers/getUserConfirmation';
 
 main().catch(error => {
   console.error('There was an unexpected error!', error);
@@ -33,9 +34,15 @@ async function main() {
   const firebaseTree = mergeTrees(currentTree, processedTree);
   console.log(firebaseTree.families, firebaseTree.people);
 
-  console.log('Writing processed tree to Firebase');
-  firebaseDb.setTree(firebaseTree);
+  try {
+    await getUserConfirmation('Write this tree to Firebase?');
 
-  firebaseDb.closeConnection();
-  console.log('Done!');
+    console.log('Writing processed tree to Firebase');
+    firebaseDb.setTree(firebaseTree);
+  } catch {
+    console.log('Skipping tree overwrite');
+  } finally {
+    firebaseDb.closeConnection();
+    console.log('Done!');
+  }
 }
