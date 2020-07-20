@@ -31,6 +31,7 @@ async function main() {
   console.log('Processing file');
   const processedTree = await FirebaseTreeFactory.fromFile(path, familyName);
   const firebaseTree = mergeTrees(currentTree, processedTree);
+  console.log(firebaseTree.families, firebaseTree.people);
 
   console.log('Writing processed tree to Firebase');
   firebaseDb.setTree(firebaseTree);

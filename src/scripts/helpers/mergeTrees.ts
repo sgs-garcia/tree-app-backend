@@ -9,11 +9,5 @@ export function mergeTrees(
   if (currentTree) {
     console.log('Merging current Firebase tree with processed one');
   }
-
-  const firebaseTree = !currentTree
-    ? processedTree
-    : merge(currentTree, processedTree);
-  console.log(firebaseTree.families, firebaseTree.people);
-
-  return firebaseTree;
+  return !currentTree ? processedTree : merge(currentTree, processedTree);
 }
