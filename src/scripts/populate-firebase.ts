@@ -1,27 +1,18 @@
 /* eslint-disable no-console */
-import { promisify } from 'util';
-import { readFile } from 'fs';
+import {
+  Person,
+  CsvPerson,
+  Relationships,
+  FirebaseTree,
+  Family,
+} from './interfaces';
+import { readFileSync } from 'fs';
 import { v5 as uuid } from 'uuid';
 import parse from 'csv-parse';
-import { Person, Relationships } from './interfaces/person';
-import { CsvPerson } from './interfaces/csvPerson';
 import { Gender } from './types';
-import { isEqual, uniqWith } from 'lodash';
-
-interface Family {
-  id: string;
-  name: string;
-  members: Relationships;
-}
-
-interface FirebaseTree {
-  people: {
-    [id: string]: Person;
-  };
-  families: {
-    [id: string]: Family;
-  };
-}
+import { isEqual, uniqWith, merge } from 'lodash';
+import { FirebaseDb } from './helpers/firebaseDb';
+import dotenv from 'dotenv';
 
 interface IPersonMap {
   person: Person;
@@ -36,18 +27,54 @@ main().catch(error => {
 });
 
 async function main() {
-  const [path] = process.argv.slice(2);
-  const [familyName] = path.split('.');
-
-  if (!path || !familyName) {
-    console.error('Usage: npx ts-node populate-firebase.ts family-name.csv');
+  dotenv.config();
+  const { GCP_SA_PATH, DATABASE_URL } = process.env;
+  if (!DATABASE_URL) {
+    console.error('Env variables are not set!');
     process.exit(1);
   }
 
-  const csv = await promisify(readFile)(path);
-  const parser = parse(csv, { cast: true, cast_date: true, columns: true });
+  const [path] = process.argv.slice(2);
+  if (!path) {
+    console.error('Usage: npm run populate -- family-name.csv');
+    process.exit(1);
+  }
+  const [familyName] = path.split('.');
 
+  console.log('Getting current Firebase tree');
+  const firebaseDb = new FirebaseDb(DATABASE_URL, GCP_SA_PATH);
+  const currentTree = await firebaseDb.getTree();
+
+  console.log('Processing file');
+  const processedTree = await firebaseTreeFromFile(path, familyName);
+
+  const firebaseTree = mergeTrees(currentTree, processedTree);
+  firebaseDb.setTree(firebaseTree);
+
+  console.log('Done!');
+  firebaseDb.closeConnection();
+}
+
+function mergeTrees(currentTree: FirebaseTree, processedTree: FirebaseTree) {
+  const firebaseTree = !currentTree
+    ? processedTree
+    : merge(currentTree, processedTree);
+  console.log(
+    !currentTree
+      ? 'Writing processed tree to Firebase'
+      : 'Merging current Firebase tree with processed one',
+    firebaseTree.families,
+    firebaseTree.people
+  );
+
+  return firebaseTree;
+}
+
+async function firebaseTreeFromFile(filePath: string, familyName: string) {
+  const csv = readFileSync(filePath);
+  const parser = parse(csv, { cast: true, cast_date: true, columns: true });
   const rawPeople = await processFile(parser);
+
   setParentsAndPartners(rawPeople);
 
   const people = new Map<string, Person>(
@@ -59,9 +86,7 @@ async function main() {
   addSiblings(people);
   const family = addFamily(familyName, people);
 
-  const firebaseTree = buildFirebaseTree(family, people);
-  console.log(firebaseTree.people);
-  console.log(firebaseTree.families);
+  return buildFirebaseTree(family, people);
 }
 
 function buildFirebaseTree(family: Family, people: Map<string, Person>) {
