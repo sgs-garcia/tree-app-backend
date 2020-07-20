@@ -1,4 +1,5 @@
 import { Gender } from '../types';
+import { Relationships } from './relationships';
 
 export interface Person {
   id: string;
@@ -14,8 +15,4 @@ export interface Person {
   partners: Relationships;
   children: Relationships;
   siblings: Relationships;
-}
-
-export interface Relationships {
-  [id: string]: boolean;
 }
