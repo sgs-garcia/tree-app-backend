@@ -23,7 +23,7 @@ export class FirebaseDb {
     return tree;
   }
 
-  async setTree(tree: FirebaseTree) {
+  setTree(tree: FirebaseTree) {
     return this.db.ref().set(tree);
   }
 
