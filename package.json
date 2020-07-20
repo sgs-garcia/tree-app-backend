@@ -9,7 +9,6 @@
     "coverage": "nyc npm run test",
     "build": "rm -rf dist && tsc",
     "lint": "eslint --max-warnings 0 src/**/*.ts",
-    "format": "prettier --write src/**/*.ts",
     "populate": "node -r ts-node/register -r dotenv src/scripts/populate-firebase.ts"
   },
   "author": "Sergio García <sgs.garcia93@gmail.com>",
