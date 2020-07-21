@@ -11,3 +11,8 @@ dist
 # Terraform
 .terraform
 *.tfvars
+
+# Population Script
+*.csv
+credentials.json
+.env
