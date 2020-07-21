@@ -1,4 +1,5 @@
 resource "google_cloud_run_service" "treeapp" {
+  provider                   = google
   name                       = var.service
   location                   = var.region
   autogenerate_revision_name = true
@@ -20,6 +21,7 @@ data "google_iam_policy" "noauth" {
 }
 
 resource "google_cloud_run_service_iam_policy" "noauth" {
+  provider    = google
   location    = google_cloud_run_service.treeapp.location
   project     = google_cloud_run_service.treeapp.project
   service     = google_cloud_run_service.treeapp.name
