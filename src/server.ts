@@ -9,7 +9,7 @@ server.route({
   method: 'GET',
   path: '/',
   handler: () => ({
-    message: 'Hello World!',
+    message: 'Hello World :)',
   }),
 });
 
