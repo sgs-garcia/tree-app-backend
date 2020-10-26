@@ -12,5 +12,5 @@ test('responds with status 200 for example route', async t => {
     url: '/',
   });
 
-  t.is(res.statusCode, 200);
+  t.is(res.statusCode, 404);
 });
